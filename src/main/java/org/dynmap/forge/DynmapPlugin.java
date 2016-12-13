@@ -50,6 +50,7 @@ import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.Biome;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.MinecraftForge;
@@ -435,7 +436,7 @@ public class DynmapPlugin
         {
             if(server.getPlayerList() == null)
                 return new DynmapPlayer[0];
-            List<?> playlist = server.getPlayerList().getPlayerList();
+            List<?> playlist = server.getPlayerList().getPlayers();
             int pcnt = playlist.size();
             DynmapPlayer[] dplay = new DynmapPlayer[pcnt];
 
@@ -457,7 +458,7 @@ public class DynmapPlugin
         @Override
         public DynmapPlayer getPlayer(String name)
         {
-            List<?> players = server.getPlayerList().getPlayerList();
+            List<?> players = server.getPlayerList().getPlayers();
 
             for (Object o : players)
             {
@@ -1046,7 +1047,7 @@ public class DynmapPlugin
                 return null;
             }
 
-            return toLoc(player.worldObj, player.posX, player.posY, player.posZ);
+            return toLoc(player.getEntityWorld(), player.posX, player.posY, player.posZ);
         }
         @Override
         public String getWorld()
@@ -1056,9 +1057,9 @@ public class DynmapPlugin
                 return null;
             }
 
-            if (player.worldObj != null)
+            if (player.getEntityWorld() != null)
             {
-                return DynmapPlugin.this.getWorld(player.worldObj).getName();
+                return DynmapPlugin.this.getWorld(player.getEntityWorld()).getName();
             }
 
             return null;
@@ -1150,7 +1151,7 @@ public class DynmapPlugin
         public void sendMessage(String msg)
         {
             ITextComponent ichatcomponent = new TextComponentString(msg);
-            player.addChatComponentMessage(ichatcomponent);
+            player.sendMessage(ichatcomponent);
         }
         @Override
         public boolean isInvisible() {
@@ -1207,7 +1208,7 @@ public class DynmapPlugin
         {
         	if(sender != null) {
                 ITextComponent ichatcomponent = new TextComponentString(msg);
-        	    sender.addChatMessage(ichatcomponent);
+        	    sender.sendMessage(ichatcomponent);
         	}
         }
 
@@ -1378,14 +1379,12 @@ public class DynmapPlugin
         loadWorlds();
         
         /* Initialized the currently loaded worlds */
-        if(server.worldServers != null) { 
-            for (WorldServer world : server.worldServers) {
+        if(server.worlds != null) { 
+            for (WorldServer world : server.worlds) {
                 ForgeWorld w = this.getWorld(world);
-                /*NOTYET - need rest of forge
-                if(DimensionManager.getWorld(world.provider.getDimensionId()) == null) { // If not loaded
+                if(DimensionManager.getWorld(world.provider.getDimension()) == null) { // If not loaded
                     w.setWorldUnloaded();
                 }
-                */
             }
         }
         for(ForgeWorld w : worlds.values()) {
@@ -1963,13 +1962,13 @@ class DynmapCommandHandler extends CommandBase
     }
 
     @Override
-    public String getCommandName()
+    public String getName()
     {
         return cmd;
     }
 
     @Override
-    public String getCommandUsage(ICommandSender icommandsender) {
+    public String getUsage(ICommandSender icommandsender) {
         return "Run /" + cmd + " help for details on using command";
     }
 
